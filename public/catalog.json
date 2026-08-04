@@ -1,26 +1,7 @@
 {
-  "site": "agent-memory",
-  "product": "LVL LTD agent-memory skill pack",
-  "version": "1.0.0",
-  "skills": [
-    {
-      "id": "agent-memory",
-      "name": "Agent Memory",
-      "tier": "starter",
-      "featured": true,
-      "price_usd": 0.002,
-      "price_label": "$0.002 / remember · $0.001 / recall · $0.0005 list|forget",
-      "pricing_model": "per_call",
-      "category": "Memory",
-      "summary": "Persistent wallet-scoped key-value memory for agents. remember / recall / list / forget metered per call in USDC on Base via x402. Best-effort durability; no subscription.",
-      "product_type": "skill",
-      "challenge": "/api/memory/pricing",
-      "marketplace": "/",
-      "runtime": {
-        "base_path": "/api/memory",
-        "operations": ["remember", "recall", "list", "forget"],
-        "pricing_url": "/api/memory/pricing"
-      }
-    }
-  ]
+  "site": "lvlltd-demo",
+  "product": "LVL LTD Agent Skill Market",
+  "version": "2.0.0",
+  "note": "Static snapshot. Prefer live /api/catalog (slim by default).",
+  "redirect_hint": "/api/catalog"
 }

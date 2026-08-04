@@ -3,7 +3,7 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { CreatedWithGrokBanner } from "@/components/created-with-grok-banner";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "agent-memory · LVL LTD skill";
+const APP_NAME = "LVL LTD — x402 Agent Skill Market";
 const host = import.meta.env.VITE_PUBLIC_HOSTNAME;
 const ogImage = host
   ? `https://og.grok.me/v1/card.png?host=${encodeURIComponent(host)}&title=${encodeURIComponent(APP_NAME)}`
@@ -14,13 +14,11 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      {
-        title: APP_NAME,
-      },
+      { title: APP_NAME },
       {
         name: "description",
         content:
-          "Persistent wallet-scoped agent memory. remember / recall / list / forget — x402 per-call USDC on Base. Best-effort durability.",
+          "x402 AI agent skill marketplace on Base USDC. Free outlines, honest depth badges, slim catalog, live agent-memory runtime.",
       },
       ...(ogImage
         ? [
@@ -45,5 +43,13 @@ export const Route = createRootRoute({
         <Scripts />
       </body>
     </html>
+  ),
+  notFoundComponent: () => (
+    <div className="flex min-h-[50dvh] flex-col items-center justify-center gap-3 px-4 text-center">
+      <p className="text-lg font-semibold">Not found</p>
+      <a href="/" className="text-sm text-muted underline">
+        Back home
+      </a>
+    </div>
   ),
 });

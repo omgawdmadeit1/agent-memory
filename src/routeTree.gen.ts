@@ -11,8 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as MarketplaceRouteImport } from './routes/marketplace'
+import { Route as StatusRouteImport } from './routes/status'
 import { Route as ApiCatalogRouteImport } from './routes/api/catalog'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as ApiInventoryRouteImport } from './routes/api/inventory'
+import { Route as ApiProofRouteImport } from './routes/api/proof'
+import { Route as ApiShopRouteImport } from './routes/api/shop'
+import { Route as ListingsIdRouteImport } from './routes/listings.$id'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiMemoryForgetRouteImport } from './routes/api/memory/forget'
 import { Route as ApiMemoryListRouteImport } from './routes/api/memory/list'
@@ -31,6 +37,16 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MarketplaceRoute = MarketplaceRouteImport.update({
+  id: '/marketplace',
+  path: '/marketplace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatusRoute = StatusRouteImport.update({
+  id: '/status',
+  path: '/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCatalogRoute = ApiCatalogRouteImport.update({
   id: '/api/catalog',
   path: '/api/catalog',
@@ -39,6 +55,26 @@ const ApiCatalogRoute = ApiCatalogRouteImport.update({
 const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/api/health',
   path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiInventoryRoute = ApiInventoryRouteImport.update({
+  id: '/api/inventory',
+  path: '/api/inventory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiProofRoute = ApiProofRouteImport.update({
+  id: '/api/proof',
+  path: '/api/proof',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopRoute = ApiShopRouteImport.update({
+  id: '/api/shop',
+  path: '/api/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ListingsIdRoute = ListingsIdRouteImport.update({
+  id: '/listings/$id',
+  path: '/listings/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
@@ -81,8 +117,14 @@ const ApiSkillsAgentMemoryOutlineRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/marketplace': typeof MarketplaceRoute
+  '/status': typeof StatusRoute
   '/api/catalog': typeof ApiCatalogRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/inventory': typeof ApiInventoryRoute
+  '/api/proof': typeof ApiProofRoute
+  '/api/shop': typeof ApiShopRoute
+  '/listings/$id': typeof ListingsIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/memory/forget': typeof ApiMemoryForgetRoute
   '/api/memory/list': typeof ApiMemoryListRoute
@@ -94,8 +136,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/marketplace': typeof MarketplaceRoute
+  '/status': typeof StatusRoute
   '/api/catalog': typeof ApiCatalogRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/inventory': typeof ApiInventoryRoute
+  '/api/proof': typeof ApiProofRoute
+  '/api/shop': typeof ApiShopRoute
+  '/listings/$id': typeof ListingsIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/memory/forget': typeof ApiMemoryForgetRoute
   '/api/memory/list': typeof ApiMemoryListRoute
@@ -108,8 +156,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/marketplace': typeof MarketplaceRoute
+  '/status': typeof StatusRoute
   '/api/catalog': typeof ApiCatalogRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/inventory': typeof ApiInventoryRoute
+  '/api/proof': typeof ApiProofRoute
+  '/api/shop': typeof ApiShopRoute
+  '/listings/$id': typeof ListingsIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/memory/forget': typeof ApiMemoryForgetRoute
   '/api/memory/list': typeof ApiMemoryListRoute
@@ -123,8 +177,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/marketplace'
+    | '/status'
     | '/api/catalog'
     | '/api/health'
+    | '/api/inventory'
+    | '/api/proof'
+    | '/api/shop'
+    | '/listings/$id'
     | '/api/auth/$'
     | '/api/memory/forget'
     | '/api/memory/list'
@@ -136,8 +196,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/marketplace'
+    | '/status'
     | '/api/catalog'
     | '/api/health'
+    | '/api/inventory'
+    | '/api/proof'
+    | '/api/shop'
+    | '/listings/$id'
     | '/api/auth/$'
     | '/api/memory/forget'
     | '/api/memory/list'
@@ -149,8 +215,14 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/login'
+    | '/marketplace'
+    | '/status'
     | '/api/catalog'
     | '/api/health'
+    | '/api/inventory'
+    | '/api/proof'
+    | '/api/shop'
+    | '/listings/$id'
     | '/api/auth/$'
     | '/api/memory/forget'
     | '/api/memory/list'
@@ -163,8 +235,14 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  MarketplaceRoute: typeof MarketplaceRoute
+  StatusRoute: typeof StatusRoute
   ApiCatalogRoute: typeof ApiCatalogRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  ApiInventoryRoute: typeof ApiInventoryRoute
+  ApiProofRoute: typeof ApiProofRoute
+  ApiShopRoute: typeof ApiShopRoute
+  ListingsIdRoute: typeof ListingsIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiMemoryForgetRoute: typeof ApiMemoryForgetRoute
   ApiMemoryListRoute: typeof ApiMemoryListRoute
@@ -190,6 +268,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/marketplace': {
+      id: '/marketplace'
+      path: '/marketplace'
+      fullPath: '/marketplace'
+      preLoaderRoute: typeof MarketplaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/status': {
+      id: '/status'
+      path: '/status'
+      fullPath: '/status'
+      preLoaderRoute: typeof StatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/catalog': {
       id: '/api/catalog'
       path: '/api/catalog'
@@ -202,6 +294,34 @@ declare module '@tanstack/react-router' {
       path: '/api/health'
       fullPath: '/api/health'
       preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/inventory': {
+      id: '/api/inventory'
+      path: '/api/inventory'
+      fullPath: '/api/inventory'
+      preLoaderRoute: typeof ApiInventoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/proof': {
+      id: '/api/proof'
+      path: '/api/proof'
+      fullPath: '/api/proof'
+      preLoaderRoute: typeof ApiProofRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop': {
+      id: '/api/shop'
+      path: '/api/shop'
+      fullPath: '/api/shop'
+      preLoaderRoute: typeof ApiShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/listings/$id': {
+      id: '/listings/$id'
+      path: '/listings/$id'
+      fullPath: '/listings/$id'
+      preLoaderRoute: typeof ListingsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
@@ -259,8 +379,14 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  MarketplaceRoute: MarketplaceRoute,
+  StatusRoute: StatusRoute,
   ApiCatalogRoute: ApiCatalogRoute,
   ApiHealthRoute: ApiHealthRoute,
+  ApiInventoryRoute: ApiInventoryRoute,
+  ApiProofRoute: ApiProofRoute,
+  ApiShopRoute: ApiShopRoute,
+  ListingsIdRoute: ListingsIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiMemoryForgetRoute: ApiMemoryForgetRoute,
   ApiMemoryListRoute: ApiMemoryListRoute,
