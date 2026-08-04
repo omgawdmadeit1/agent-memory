@@ -1,0 +1,53 @@
+{
+  "skill_id": "agent-memory",
+  "name": "Agent Memory",
+  "version": "1.0.0",
+  "install": {
+    "kind": "http_skill",
+    "base_url": "https://lvlltd.com",
+    "endpoints": {
+      "pricing": "/api/memory/pricing",
+      "remember": "/api/memory/remember",
+      "recall": "/api/memory/recall",
+      "list": "/api/memory/list",
+      "forget": "/api/memory/forget",
+      "outline": "/skills/agent-memory/outline.json"
+    }
+  },
+  "headers": {
+    "identity": "X-WALLET",
+    "payment": "X-PAYMENT"
+  },
+  "payment": {
+    "protocol": "x402",
+    "network": "eip155:8453",
+    "asset": "USDC",
+    "skill": "agent-memory"
+  },
+  "tools": [
+    {
+      "name": "remember",
+      "method": "POST",
+      "path": "/api/memory/remember",
+      "body": { "key": "string", "value": "string", "scope": "private|shared|public" }
+    },
+    {
+      "name": "recall",
+      "method": "POST",
+      "path": "/api/memory/recall",
+      "body": { "key": "string", "scope": "private|shared|public" }
+    },
+    {
+      "name": "list",
+      "method": "POST",
+      "path": "/api/memory/list",
+      "body": { "prefix": "string", "scope": "private|shared|public", "limit": 50 }
+    },
+    {
+      "name": "forget",
+      "method": "POST",
+      "path": "/api/memory/forget",
+      "body": { "key": "string", "scope": "private|shared|public" }
+    }
+  ]
+}

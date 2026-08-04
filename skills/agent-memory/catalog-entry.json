@@ -1,0 +1,88 @@
+{
+  "id": "agent-memory",
+  "name": "Agent Memory",
+  "tier": "starter",
+  "featured": true,
+  "price_usd": 0.002,
+  "price_label": "$0.002 / remember · $0.001 / recall · $0.0005 list|forget",
+  "pricing_model": "per_call",
+  "category": "Memory",
+  "summary": "Persistent wallet-scoped key-value memory for agents. remember / recall / list / forget metered per call in USDC on Base via x402. Best-effort durability; no subscription.",
+  "product_type": "skill",
+  "challenge": "https://lvlltd.com/api/pay?skill=agent-memory",
+  "marketplace": "https://lvlltd.com/hub/marketplace?buy=agent-memory",
+  "runtime": {
+    "base_path": "/api/memory",
+    "operations": ["remember", "recall", "list", "forget"],
+    "pricing_url": "https://lvlltd.com/api/memory/pricing"
+  },
+  "x402": {
+    "challenge": "https://lvlltd.com/api/pay?skill=agent-memory",
+    "resource": "https://lvlltd.com/api/memory/pricing",
+    "network": "base",
+    "asset": "USDC",
+    "network_caip2": "eip155:8453",
+    "asset_contract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "pay_to": "0xa00876513bAA433ce2B58A5341Fd06d2b6f9A6ED",
+    "per_call": {
+      "remember_base_atomic": "2000",
+      "remember_overage_per_kb_atomic": "1000",
+      "recall_atomic": "1000",
+      "list_atomic": "500",
+      "forget_atomic": "500"
+    }
+  },
+  "packaging": {
+    "schema": "lvl-container-skill-packaging-v1",
+    "maturity": "sealed_pack_only",
+    "isolation": "wallet_namespaced_kv",
+    "mcp_posture": "not_required",
+    "scan_status": "planned",
+    "scan_summary": "Not scanned yet — do not display trust badge until scan passes",
+    "signature_status": "none",
+    "sbom_status": "planned",
+    "primary_distribution": "sealed_pack",
+    "docs": "https://lvlltd.com/skills/agent-memory/outline.json"
+  },
+  "trust_badges": ["sealed_pack", "x402_unlock", "onchain_proof"],
+  "trust": {
+    "schema_version": "lvl-trust-scorecard-v1",
+    "composite_score": null,
+    "composite_label": "Unproven · not scanned",
+    "ranking_boost": 0,
+    "unproven": true,
+    "functional": {
+      "tier": "implementation_shipped",
+      "label": "Implementation shipped · scan pending",
+      "score": null
+    },
+    "permissions": {
+      "agency_level": "act_with_approval",
+      "agency_label": "Can act with approval",
+      "badges": ["reads_data", "writes_data", "can_spend", "wallet", "network"],
+      "least_privilege_score": null
+    },
+    "freshness": {
+      "band": "fresh",
+      "last_updated_at": "2026-08-04T12:00:00.000Z",
+      "score": 95,
+      "ranking_boost": 0.12,
+      "confirmed_working_with": null
+    },
+    "reputation": {
+      "confirmed_unlocks": 0,
+      "score": null,
+      "source": "none",
+      "data_status": "no_data_yet",
+      "display_label": "No data yet"
+    },
+    "detail": "https://lvlltd.com/api/trust?skill=agent-memory",
+    "honesty": "Trust scorecard badge must not be shown until security scanning layer has actually passed."
+  },
+  "honesty": {
+    "durability": "best_effort",
+    "sla": false,
+    "fabricated_pricing": false,
+    "trust_scan_passed": false
+  }
+}

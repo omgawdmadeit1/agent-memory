@@ -1,0 +1,15 @@
+node_modules/
+.vercel/
+dist/
+.output/
+tmp/
+*.log
+/tmp/
+.DS_Store
+.env
+.env.*
+!.env.example
+screenshots/
+artifacts/
+.node_modules.lock
+routeTree.gen.ts.bak

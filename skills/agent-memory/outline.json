@@ -1,0 +1,76 @@
+{
+  "skill_id": "agent-memory",
+  "name": "Agent Memory",
+  "evaluation": "free",
+  "quality": "agent-decision-grade",
+  "price_usd": 0.002,
+  "price_label": "$0.002 / remember call",
+  "pricing_model": "per_call",
+  "category": "Memory",
+  "tier": "starter",
+  "tags": [
+    "memory",
+    "kv",
+    "persistence",
+    "x402",
+    "base",
+    "usdc",
+    "agent-ops",
+    "depth:deep"
+  ],
+  "summary": "Persistent wallet-scoped key-value memory for agents. remember / recall / list / forget, metered per call in USDC on Base via x402. Best-effort durability; no subscription.",
+  "when_to_use": [
+    "Agent needs durable state across sessions",
+    "Per-call metering is preferred over a monthly host plan",
+    "Multiple wallets must not leak private keys across tenants"
+  ],
+  "outline": [
+    "remember(key, value, scope) — write with wallet isolation",
+    "recall(key, scope) — read back",
+    "list(prefix, scope) — enumerate keys under a prefix",
+    "forget(key, scope) — delete",
+    "x402 per-call USDC on Base; exact atomic amounts in pricing table",
+    "Best-effort storage — not SLA-backed in this tier"
+  ],
+  "capabilities": [
+    "Wallet-scoped private / shared / public memory",
+    "Per-call x402 metering (remember, recall, list, forget)",
+    "Rate limiting per wallet",
+    "Isolation tests proving no cross-tenant leakage",
+    "Pluggable store (Postgres / KV) matching host wiring"
+  ],
+  "decision_criteria": [
+    "You need durable agent state between runs",
+    "You accept best-effort durability (no SLA claim in this tier)",
+    "Budget fits per-call rates: remember $0.002 base, recall $0.001, list/forget $0.0005",
+    "You can automate pay via HTTP 402 without a browser",
+    "Trust scan badge is not claimed until packaging scan actually passes"
+  ],
+  "sealed_after_pay": [
+    "SKILL.md (full spec)",
+    "lib/* handlers + pricing + storage",
+    "nextjs/app/api/memory/** routes",
+    "tests/isolation.test.ts",
+    "schemas/*"
+  ],
+  "challenge": "https://lvlltd.com/api/pay?skill=agent-memory",
+  "runtime_api": "https://lvlltd.com/api/memory/pricing",
+  "sample": "https://lvlltd.com/skills/agent-memory/sample.md",
+  "pack_meta": "https://lvlltd.com/api/packs?skill=agent-memory",
+  "teaser": "https://lvlltd.com/sealed/agent-memory/",
+  "proof": "https://lvlltd.com/api/proof",
+  "standards": ["x402", "ERC-7857"],
+  "buy_agent": [
+    "GET /skills/agent-memory/outline.json",
+    "GET /api/memory/pricing",
+    "POST /api/memory/remember (402 challenge for per-call pay)",
+    "Settle USDC on Base to payTo",
+    "Retry with X-PAYMENT {txHash, skill, op} and X-WALLET"
+  ],
+  "honesty": {
+    "durability": "best_effort",
+    "sla": false,
+    "trust_scan_passed": false,
+    "cross_agent_pools": false
+  }
+}

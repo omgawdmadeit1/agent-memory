@@ -1,0 +1,16 @@
+{
+  "name": "@lvlltd/agent-memory",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Persistent wallet-scoped agent KV memory — x402 per-call USDC on Base",
+  "type": "module",
+  "exports": {
+    ".": "./lib/index.ts",
+    "./lib/*": "./lib/*"
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types tests/isolation.test.ts"
+  },
+  "keywords": ["x402", "agent", "memory", "base", "usdc", "lvl"],
+  "license": "UNLICENSED"
+}

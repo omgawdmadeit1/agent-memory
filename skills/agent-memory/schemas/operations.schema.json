@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lvlltd.com/schemas/agent-memory-operations.json",
+  "title": "agent-memory operations",
+  "definitions": {
+    "scope": {
+      "type": "string",
+      "enum": ["private", "shared", "public"]
+    },
+    "key": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-zA-Z0-9._\\-:\\/]{1,128}$"
+    },
+    "remember": {
+      "type": "object",
+      "required": ["key", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "key": { "$ref": "#/definitions/key" },
+        "value": { "type": "string", "maxLength": 65536 },
+        "scope": { "$ref": "#/definitions/scope" }
+      }
+    },
+    "recall": {
+      "type": "object",
+      "required": ["key"],
+      "additionalProperties": false,
+      "properties": {
+        "key": { "$ref": "#/definitions/key" },
+        "scope": { "$ref": "#/definitions/scope" }
+      }
+    },
+    "list": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "prefix": { "type": "string", "maxLength": 128 },
+        "scope": { "$ref": "#/definitions/scope" },
+        "limit": { "type": "integer", "minimum": 1, "maximum": 100 }
+      }
+    },
+    "forget": {
+      "type": "object",
+      "required": ["key"],
+      "additionalProperties": false,
+      "properties": {
+        "key": { "$ref": "#/definitions/key" },
+        "scope": { "$ref": "#/definitions/scope" }
+      }
+    }
+  }
+}
