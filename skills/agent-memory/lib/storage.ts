@@ -102,6 +102,19 @@ export type SqlRunner = {
   query<T = Record<string, unknown>>(text: string, params?: unknown[]): Promise<T[]>;
 };
 
+/** pg / PGLite return timestamptz as Date; String(date) is not valid SQL input. */
+export function toIsoTimestamp(value: Date | string): string {
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) {
+      throw new MemoryError("STORAGE_ERROR", "invalid timestamp value", 500);
+    }
+    return value.toISOString();
+  }
+  const parsed = Date.parse(value);
+  if (!Number.isNaN(parsed)) return new Date(parsed).toISOString();
+  return value;
+}
+
 export class SqlMemoryStore implements MemoryStore {
   private sql: SqlRunner;
 
@@ -117,8 +130,8 @@ export class SqlMemoryStore implements MemoryStore {
       key: string;
       value: string;
       bytes: number;
-      created_at: string;
-      updated_at: string;
+      created_at: Date | string;
+      updated_at: Date | string;
     }>("select path, scope, owner, key, value, bytes, created_at, updated_at from agent_memory where path = $1 limit 1", [
       path,
     ]);
@@ -131,8 +144,8 @@ export class SqlMemoryStore implements MemoryStore {
       key: r.key,
       value: r.value,
       bytes: Number(r.bytes),
-      created_at: String(r.created_at),
-      updated_at: String(r.updated_at),
+      created_at: toIsoTimestamp(r.created_at),
+      updated_at: toIsoTimestamp(r.updated_at),
     };
   }
 
@@ -173,8 +186,8 @@ export class SqlMemoryStore implements MemoryStore {
       key: string;
       value: string;
       bytes: number;
-      created_at: string;
-      updated_at: string;
+      created_at: Date | string;
+      updated_at: Date | string;
     }>(
       `select path, scope, owner, key, value, bytes, created_at, updated_at
        from agent_memory
@@ -190,8 +203,8 @@ export class SqlMemoryStore implements MemoryStore {
       key: r.key,
       value: r.value,
       bytes: Number(r.bytes),
-      created_at: String(r.created_at),
-      updated_at: String(r.updated_at),
+      created_at: toIsoTimestamp(r.created_at),
+      updated_at: toIsoTimestamp(r.updated_at),
     }));
   }
 
@@ -263,7 +276,7 @@ export class MemoryService {
       key,
       value: input.value,
       bytes,
-      created_at: existing?.created_at ?? now,
+      created_at: existing ? toIsoTimestamp(existing.created_at) : now,
       updated_at: now,
     };
     await this.store.set(record);
