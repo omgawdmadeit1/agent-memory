@@ -7,9 +7,13 @@ import assert from "node:assert/strict";
 import {
   createIsolatedTestStore,
   MemoryService,
+  SqlMemoryStore,
   storagePath,
+  toIsoTimestamp,
   WALLET_BYTE_QUOTA,
   MAX_VALUE_BYTES,
+  type MemoryRecord,
+  type SqlRunner,
 } from "../lib/storage.ts";
 import { priceRemember, priceOp, usdToAtomic, PRICING } from "../lib/pricing.ts";
 import { MemoryError } from "../lib/errors.ts";
@@ -100,6 +104,87 @@ async function testQuota() {
   console.log("ok quota (wrote", wrote, "chunks before full; quota", WALLET_BYTE_QUOTA, "bytes)");
 }
 
+function testToIsoTimestamp() {
+  const d = new Date("2026-08-23T11:10:46.517Z");
+  assert.equal(toIsoTimestamp(d), "2026-08-23T11:10:46.517Z");
+  assert.equal(
+    toIsoTimestamp("Sun Aug 23 2026 11:10:46 GMT+0000 (Coordinated Universal Time)"),
+    "2026-08-23T11:10:46.000Z",
+  );
+  assert.equal(toIsoTimestamp("2026-08-23T11:10:46.517Z"), "2026-08-23T11:10:46.517Z");
+  console.log("ok toIsoTimestamp");
+}
+
+/**
+ * pg / PGLite return timestamptz as Date. The old mapper used String(date),
+ * which Postgres rejects on the next upsert — updates of existing keys 500'd.
+ */
+async function testSqlTimestampUpsert() {
+  const rows = new Map<string, MemoryRecord>();
+  const sql: SqlRunner = {
+    async query<T = Record<string, unknown>>(text: string, params: unknown[] = []) {
+      if (text.startsWith("select") && text.includes("where path = $1")) {
+        const rec = rows.get(String(params[0]));
+        if (!rec) return [] as T[];
+        // Driver shape: Date objects, not ISO strings.
+        return [
+          {
+            ...rec,
+            created_at: new Date(rec.created_at),
+            updated_at: new Date(rec.updated_at),
+          },
+        ] as T[];
+      }
+      if (text.includes("sum(bytes)")) {
+        return [{ sum: 0 }] as T[];
+      }
+      if (text.startsWith("insert")) {
+        const [path, scope, owner, key, value, bytes, created_at, updated_at] = params as [
+          string,
+          MemoryRecord["scope"],
+          string,
+          string,
+          string,
+          number,
+          string,
+          string,
+        ];
+        for (const ts of [created_at, updated_at]) {
+          if (typeof ts === "string" && (ts.includes("GMT") || !ts.includes("T"))) {
+            throw new Error(`invalid input syntax for type timestamp with time zone: "${ts}"`);
+          }
+        }
+        rows.set(path, {
+          path,
+          scope,
+          owner,
+          key,
+          value,
+          bytes,
+          created_at,
+          updated_at,
+        });
+        return [] as T[];
+      }
+      return [] as T[];
+    },
+  };
+
+  const svc = new MemoryService(new SqlMemoryStore(sql));
+  const first = await svc.remember({ wallet: W1, key: "prefs", value: "v1" });
+  assert.equal(first.value, "v1");
+  assert.match(first.created_at, /^\d{4}-\d{2}-\d{2}T/);
+
+  const updated = await svc.remember({ wallet: W1, key: "prefs", value: "v2" });
+  assert.equal(updated.value, "v2");
+  assert.equal(updated.created_at, first.created_at);
+  assert.match(updated.updated_at, /^\d{4}-\d{2}-\d{2}T/);
+
+  const recalled = await svc.recall({ wallet: W1, key: "prefs" });
+  assert.equal(recalled.value, "v2");
+  console.log("ok sql timestamp upsert");
+}
+
 function testPricing() {
   const small = priceRemember(500);
   assert.equal(small.amount_usd, 0.002);
@@ -125,9 +210,11 @@ function testPricing() {
 async function main() {
   resetRateLimits();
   testPricing();
+  testToIsoTimestamp();
   await testIsolation();
   await testMalformed();
   await testQuota();
+  await testSqlTimestampUpsert();
   console.log("\nAll agent-memory tests passed.");
 }
 
