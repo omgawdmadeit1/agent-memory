@@ -16,7 +16,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test:memory": "node --experimental-strip-types skills/agent-memory/tests/isolation.test.ts",
-    "test": "npm run test:memory"
+    "test:store": "node --experimental-strip-types --test src/lib/memory/store.test.ts",
+    "test": "npm run test:memory && npm run test:store"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.3",

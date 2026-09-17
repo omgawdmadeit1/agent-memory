@@ -9,16 +9,19 @@ export * from "../../../skills/agent-memory/lib/x402";
 export * from "../../../skills/agent-memory/lib/storage";
 export * from "../../../skills/agent-memory/lib/handler";
 
-import { getSql } from "@/lib/db";
+import { dbSource, getSql } from "@/lib/db";
 import {
   InMemoryStore,
   SqlMemoryStore,
   type MemoryStore,
 } from "../../../skills/agent-memory/lib/storage";
+import { allowInMemoryFallback } from "./fallback";
+
+export { allowInMemoryFallback } from "./fallback";
 
 let fallback: InMemoryStore | null = null;
 
-/** Prefer Postgres/PGLite agent_memory table; fall back to process Map. */
+/** Prefer Postgres/PGLite agent_memory table; fall back to process Map only off Neon. */
 export async function getMemoryStore(): Promise<MemoryStore> {
   try {
     const sql = await getSql();
@@ -37,6 +40,9 @@ export async function getMemoryStore(): Promise<MemoryStore> {
     `);
     return new SqlMemoryStore(sql);
   } catch (err) {
+    if (!allowInMemoryFallback(dbSource)) {
+      throw err;
+    }
     console.warn("[agent-memory] SQL store unavailable, using in-memory:", err);
     if (!fallback) fallback = new InMemoryStore(true);
     return fallback;
