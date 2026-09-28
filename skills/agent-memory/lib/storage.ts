@@ -42,6 +42,19 @@ export interface MemoryStore {
 export const WALLET_BYTE_QUOTA = 2 * 1024 * 1024; // 2 MiB
 export const MAX_VALUE_BYTES = 64 * 1024; // 64 KiB per value
 export const MAX_LIST = 100;
+export const DEFAULT_LIST_LIMIT = 50;
+
+/**
+ * Coerce a client-supplied list limit to a finite page size.
+ * Non-numeric input (e.g. `limit=abc`) must not become NaN — that previously
+ * reached SQL as `LIMIT NaN` and 500'd after payment had already been taken.
+ */
+export function normalizeListLimit(limit: unknown): number {
+  if (limit === undefined || limit === null || limit === "") return DEFAULT_LIST_LIMIT;
+  const n = typeof limit === "number" ? limit : Number(limit);
+  if (!Number.isFinite(n)) return DEFAULT_LIST_LIMIT;
+  return Math.min(Math.max(1, Math.trunc(n)), MAX_LIST);
+}
 
 const globalRef = globalThis as typeof globalThis & {
   __agentMemoryKv__?: Map<string, MemoryRecord>;
@@ -323,12 +336,12 @@ export class MemoryService {
     wallet: string;
     prefix?: unknown;
     scope?: unknown;
-    limit?: number;
+    limit?: unknown;
   }): Promise<{ keys: Array<Pick<MemoryRecord, "key" | "scope" | "bytes" | "updated_at" | "owner">>; count: number }> {
     const wallet = assertWallet(input.wallet);
     const prefix = assertPrefix(input.prefix);
     const scope = parseScope(input.scope, "private");
-    const limit = Math.min(Math.max(1, input.limit ?? 50), MAX_LIST);
+    const limit = normalizeListLimit(input.limit);
 
     let pathPrefix: string;
     if (scope === "public") {

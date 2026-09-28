@@ -5,8 +5,8 @@
 import { MemoryError, isMemoryError } from "./errors.ts";
 import { checkRateLimit } from "./rate-limit.ts";
 import { priceRemember, utf8Bytes, type MemoryOp } from "./pricing.ts";
-import { assertWallet } from "./scope.ts";
-import { MemoryService, type MemoryStore } from "./storage.ts";
+import { assertKey, assertPrefix, assertWallet, parseScope } from "./scope.ts";
+import { MAX_VALUE_BYTES, MemoryService, normalizeListLimit, type MemoryStore } from "./storage.ts";
 import { buildChallenge, paymentErrorResponse, requirePayment } from "./x402.ts";
 
 export function json(data: unknown, status = 200, headers?: HeadersInit): Response {
@@ -43,6 +43,39 @@ async function readBody(request: Request): Promise<Record<string, unknown>> {
   } catch {
     throw new MemoryError("BAD_REQUEST", "Request body must be valid JSON", 400);
   }
+}
+
+/**
+ * Validate remember/recall/list/forget fields BEFORE charging.
+ * x402 settlement is one-way; a 400 after payment is a lost call.
+ */
+function assertRememberBody(body: Record<string, unknown>): { valueBytes: number } {
+  assertKey(body.key);
+  parseScope(body.scope, "private");
+  if (typeof body.value !== "string") {
+    throw new MemoryError("MALFORMED_VALUE", "value must be a string", 400);
+  }
+  const valueBytes = utf8Bytes(body.value);
+  if (valueBytes > MAX_VALUE_BYTES) {
+    throw new MemoryError(
+      "MALFORMED_VALUE",
+      `value exceeds max size of ${MAX_VALUE_BYTES} bytes`,
+      400,
+      { max_bytes: MAX_VALUE_BYTES, value_bytes: valueBytes },
+    );
+  }
+  return { valueBytes };
+}
+
+function assertKeyedBody(body: Record<string, unknown>): void {
+  assertKey(body.key);
+  parseScope(body.scope, "private");
+}
+
+function assertListBody(body: Record<string, unknown>): { limit: number } {
+  assertPrefix(body.prefix);
+  parseScope(body.scope, "private");
+  return { limit: normalizeListLimit(body.limit) };
 }
 
 function handleError(err: unknown): Response {
@@ -92,8 +125,7 @@ export function createMemoryHandlers(getStore: () => Promise<MemoryStore> | Memo
           throw new MemoryError("METHOD_NOT_ALLOWED", "POST only", 405);
         }
         const body = await readBody(request);
-        const value = typeof body.value === "string" ? body.value : "";
-        const valueBytes = utf8Bytes(value);
+        const { valueBytes } = assertRememberBody(body);
         const resourceUrl = new URL(request.url).pathname;
         const { wallet, payment } = await gate(request, "remember", resourceUrl, { valueBytes });
         const svc = await serviceOf();
@@ -129,6 +161,7 @@ export function createMemoryHandlers(getStore: () => Promise<MemoryStore> | Memo
           throw new MemoryError("METHOD_NOT_ALLOWED", "GET or POST", 405);
         }
         const body = await readBody(request);
+        assertKeyedBody(body);
         const resourceUrl = new URL(request.url).pathname;
         const { wallet, payment } = await gate(request, "recall", resourceUrl);
         const svc = await serviceOf();
@@ -163,6 +196,7 @@ export function createMemoryHandlers(getStore: () => Promise<MemoryStore> | Memo
           throw new MemoryError("METHOD_NOT_ALLOWED", "GET or POST", 405);
         }
         const body = await readBody(request);
+        const { limit } = assertListBody(body);
         const resourceUrl = new URL(request.url).pathname;
         const { wallet, payment } = await gate(request, "list", resourceUrl);
         const svc = await serviceOf();
@@ -170,7 +204,7 @@ export function createMemoryHandlers(getStore: () => Promise<MemoryStore> | Memo
           wallet,
           prefix: body.prefix,
           scope: body.scope,
-          limit: body.limit ? Number(body.limit) : undefined,
+          limit,
         });
         return json({
           ok: true,
@@ -194,6 +228,7 @@ export function createMemoryHandlers(getStore: () => Promise<MemoryStore> | Memo
           throw new MemoryError("METHOD_NOT_ALLOWED", "POST or DELETE", 405);
         }
         const body = await readBody(request);
+        assertKeyedBody(body);
         const resourceUrl = new URL(request.url).pathname;
         const { wallet, payment } = await gate(request, "forget", resourceUrl);
         const svc = await serviceOf();

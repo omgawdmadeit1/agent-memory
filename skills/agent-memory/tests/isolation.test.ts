@@ -10,14 +10,18 @@ import {
   SqlMemoryStore,
   storagePath,
   toIsoTimestamp,
+  normalizeListLimit,
   WALLET_BYTE_QUOTA,
   MAX_VALUE_BYTES,
+  MAX_LIST,
+  DEFAULT_LIST_LIMIT,
   type MemoryRecord,
   type SqlRunner,
 } from "../lib/storage.ts";
 import { priceRemember, priceOp, usdToAtomic, PRICING } from "../lib/pricing.ts";
 import { MemoryError } from "../lib/errors.ts";
 import { resetRateLimits } from "../lib/rate-limit.ts";
+import { createMemoryHandlers } from "../lib/handler.ts";
 
 const W1 = "0x1111111111111111111111111111111111111111";
 const W2 = "0x2222222222222222222222222222222222222222";
@@ -185,6 +189,87 @@ async function testSqlTimestampUpsert() {
   console.log("ok sql timestamp upsert");
 }
 
+function testNormalizeListLimit() {
+  assert.equal(normalizeListLimit(undefined), DEFAULT_LIST_LIMIT);
+  assert.equal(normalizeListLimit("abc"), DEFAULT_LIST_LIMIT);
+  assert.equal(normalizeListLimit(Number.NaN), DEFAULT_LIST_LIMIT);
+  assert.equal(normalizeListLimit("25"), 25);
+  assert.equal(normalizeListLimit(0), 1);
+  assert.equal(normalizeListLimit(999), MAX_LIST);
+  console.log("ok normalizeListLimit");
+}
+
+async function testListNaNDoesNotHitSql() {
+  const store = createIsolatedTestStore();
+  const svc = new MemoryService(store);
+  await svc.remember({ wallet: W1, key: "a", value: "one" });
+
+  const listed = await svc.list({ wallet: W1, prefix: "", scope: "private", limit: Number("abc") });
+  assert.equal(listed.count, 1);
+  assert.equal(listed.keys[0]?.key, "a");
+  console.log("ok list NaN limit");
+}
+
+function memoryRequest(
+  path: string,
+  opts: { method?: string; wallet?: string; payment?: unknown; body?: unknown },
+): Request {
+  const headers = new Headers();
+  if (opts.wallet) headers.set("x-wallet", opts.wallet);
+  if (opts.payment !== undefined) headers.set("x-payment", JSON.stringify(opts.payment));
+  if (opts.body !== undefined) headers.set("content-type", "application/json");
+  return new Request(`http://memory.test${path}`, {
+    method: opts.method ?? "POST",
+    headers,
+    body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+  });
+}
+
+async function testValidateBeforePayment() {
+  resetRateLimits();
+  const handlers = createMemoryHandlers(() => createIsolatedTestStore());
+
+  const badKey = await handlers.remember(
+    memoryRequest("/api/memory/remember", {
+      wallet: W1,
+      body: { key: "bad key!!", value: "v" },
+    }),
+  );
+  assert.equal(badKey.status, 400);
+  const badKeyBody = (await badKey.json()) as { error_code: string };
+  assert.equal(badKeyBody.error_code, "MALFORMED_KEY");
+
+  const badScope = await handlers.recall(
+    memoryRequest("/api/memory/recall", {
+      wallet: W1,
+      body: { key: "ok", scope: "galaxy" },
+    }),
+  );
+  assert.equal(badScope.status, 400);
+  const badScopeBody = (await badScope.json()) as { error_code: string };
+  assert.equal(badScopeBody.error_code, "INVALID_SCOPE");
+
+  const missingPay = await handlers.remember(
+    memoryRequest("/api/memory/remember", {
+      wallet: W1,
+      body: { key: "ok", value: "v" },
+    }),
+  );
+  assert.equal(missingPay.status, 402);
+
+  const listed = await handlers.list(
+    memoryRequest("/api/memory/list", {
+      wallet: W1,
+      payment: { dev: true, op: "list" },
+      body: { prefix: "", scope: "private", limit: "abc" },
+    }),
+  );
+  assert.equal(listed.status, 200);
+  const listedBody = (await listed.json()) as { ok: boolean };
+  assert.equal(listedBody.ok, true);
+  console.log("ok validate-before-payment");
+}
+
 function testPricing() {
   const small = priceRemember(500);
   assert.equal(small.amount_usd, 0.002);
@@ -211,10 +296,13 @@ async function main() {
   resetRateLimits();
   testPricing();
   testToIsoTimestamp();
+  testNormalizeListLimit();
   await testIsolation();
   await testMalformed();
   await testQuota();
   await testSqlTimestampUpsert();
+  await testListNaNDoesNotHitSql();
+  await testValidateBeforePayment();
   console.log("\nAll agent-memory tests passed.");
 }
 
